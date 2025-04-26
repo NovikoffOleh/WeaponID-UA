@@ -1,0 +1,10 @@
+
+# Ігнорувати токени, лог-файли, тимчасові та кешовані файли
+
+.env
+*.pyc
+__pycache__/
+user_logs.txt
+*.log
+.DS_Store
+input_photos/
