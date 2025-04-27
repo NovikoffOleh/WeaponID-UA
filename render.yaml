@@ -1,5 +1,5 @@
 services:
-  - type: web
+  - type: worker
     name: WeaponID-UA
     env: python
     plan: free
@@ -7,5 +7,3 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: python3 bot.py
     pythonVersion: 3.10
-
-
