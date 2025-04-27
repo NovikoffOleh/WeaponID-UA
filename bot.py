@@ -141,6 +141,9 @@ def handle_photo(update: Update, context: CallbackContext):
     lang = user_langs.get(user_id, "ua")
 
     photo_file = update.message.photo[-1].get_file()
+    
+    os.makedirs(os.path.dirname(PHOTO_PATH), exist_ok=True)
+    
     photo_file.download(PHOTO_PATH)
     update.message.reply_text("🔍 Обробляю зображення, зачекайте..." if lang == "ua" else "🔍 Processing image, please wait...")
 
