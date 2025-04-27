@@ -2,8 +2,12 @@ python-telegram-bot==13.15
 Pillow
 torch==2.0.1
 git+https://github.com/openai/CLIP.git
-numpy>=1.23.0,<2.0
-torchvision==0.15.2
+numpy<2
+torchvision
+tqdm
+regex
+ftfy
+
 
 
 
