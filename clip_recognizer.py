@@ -1,47 +1,44 @@
+# clip_recognizer.py
+
 import os
 import torch
 import clip
 from PIL import Image
+import json
+from pathlib import Path
 
 # Підключення бази даних моделей зброї
-from weapons_database import weapons_data  # <-- важливо щоб файл weapons_database.py існував
+with open('weapons_db.json', 'r', encoding='utf-8') as f:
+    weapons_data = json.load(f)
 
-_model = None
-_preprocess = None
+# Завантаження моделі тільки один раз
+device = "cuda" if torch.cuda.is_available() else "cpu"
+model, preprocess = clip.load("ViT-B/32", device=device)
 
-def load_clip_model():
-    """Ліниве завантаження CLIP-моделі"""
-    global _model, _preprocess
-    if _model is None or _preprocess is None:
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-        _model, _preprocess = clip.load("ViT-B/32", device=device)
-    return _model, _preprocess
+def load_local_image(path):
+    """Завантаження локального зображення."""
+    return Image.open(path).convert("RGB")
 
-def recognize_weapon(image_path):
-    """Функція розпізнавання зброї"""
-    model, preprocess = load_clip_model()
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+def recognize_weapon(test_image_path):
+    """Основна функція розпізнавання зброї."""
+    test_image = preprocess(load_local_image(test_image_path)).unsqueeze(0).to(device)
 
-    # Завантаження та обробка зображення
-    image = preprocess(Image.open(image_path)).unsqueeze(0).to(device)
-
-    # Підготовка текстових підписів
     weapon_names = [weapon["name"] for weapon in weapons_data]
     text_inputs = clip.tokenize(weapon_names).to(device)
 
-    # Отримання ембедінгів
+    # Отримання ознак
     with torch.no_grad():
-        image_features = model.encode_image(image)
+        image_features = model.encode_image(test_image)
         text_features = model.encode_text(text_inputs)
 
     # Нормалізація
     image_features /= image_features.norm(dim=-1, keepdim=True)
     text_features /= text_features.norm(dim=-1, keepdim=True)
 
-    # Пошук найбільш схожої моделі
+    # Порівняння
     similarities = (100.0 * image_features @ text_features.T).squeeze(0)
     best_idx = similarities.argmax().item()
-    highest_similarity = similarities[best_idx].item() / 100.0  # Приводимо до 0-1
+    highest_similarity = similarities[best_idx].item() / 100.0  # Переводимо в діапазон 0-1
 
     best_match = weapon_names[best_idx]
     match_info = next((w for w in weapons_data if w["name"] == best_match), None)
