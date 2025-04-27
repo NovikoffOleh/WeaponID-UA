@@ -8,3 +8,4 @@ services:
     startCommand: python3 bot.py
     pythonVersion: 3.10
 
+
