@@ -184,11 +184,10 @@ async def main():
     app.add_handler(MessageHandler(filters.TEXT, handle_other))
     app.add_handler(CallbackQueryHandler(button_handler))
 
-    await app.initialize()
-    await app.start()
-    logging.info("✅ Bot started successfully and polling...")
+    logging.info("✅ Bot handlers added, starting polling...")
 
     await app.run_polling()
 
 if __name__ == "__main__":
     asyncio.run(main())
+
