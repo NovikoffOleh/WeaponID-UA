@@ -22,6 +22,7 @@ user_langs = {}
 user_locations = {}
 user_last_result = {}
 
+# Функції
 def get_lang(user_id):
     return user_langs.get(user_id, "ua")
 
@@ -168,6 +169,7 @@ async def request_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
     await update.message.reply_text("📍 Натисніть кнопку нижче, щоб поділитися місцезнаходженням:", reply_markup=reply_markup)
 
+# ⚡ Головна функція
 def main():
     app = ApplicationBuilder().token(TOKEN).build()
 
