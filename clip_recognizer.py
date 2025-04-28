@@ -1,20 +1,12 @@
+# clip_recognizer.py
+import os
 from pathlib import Path
-import clip
-import torch
 from PIL import Image
+import torch
+import clip
 import json
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
-
-
-# Завантаження моделі — буде виконано лише один раз
-_model = None
-_preprocess = None
-
-def load_clip_model():
-    global _model, _preprocess
-    if _model is None or _preprocess is None:
-        _model, _preprocess = clip.load("ViT-B/32", device=device)
 
 def load_local_image(path):
     return Image.open(path).convert("RGB")
@@ -32,11 +24,14 @@ def collect_image_folders(root_path):
                 folders.append(path)
     return folders
 
-def recognize_weapon(test_image_path, reference_folder, db_path):
-    load_clip_model()
+def recognize_weapon(test_image_path, reference_folder="weapon_images", db_path="weapons_db.json"):
+    # ❗ Завантажуємо модель ЛИШЕ тут, а не при імпорті
+    model, preprocess = clip.load("ViT-B/32", device=device)
+
+    # Завантажуємо тест-зображення
+    test_image = preprocess(load_local_image(test_image_path)).unsqueeze(0).to(device)
 
     weapons_db = load_weapons_db(db_path)
-    test_image = _preprocess(load_local_image(test_image_path)).unsqueeze(0).to(device)
 
     best_match = None
     highest_similarity = -1
@@ -50,10 +45,10 @@ def recognize_weapon(test_image_path, reference_folder, db_path):
             if not image_path.suffix.lower() in ['.jpg', '.jpeg', '.png']:
                 continue
             try:
-                ref_image = _preprocess(load_local_image(str(image_path))).unsqueeze(0).to(device)
+                ref_image = preprocess(load_local_image(str(image_path))).unsqueeze(0).to(device)
                 with torch.no_grad():
-                    test_features = _model.encode_image(test_image)
-                    ref_features = _model.encode_image(ref_image)
+                    test_features = model.encode_image(test_image)
+                    ref_features = model.encode_image(ref_image)
                 similarity = torch.nn.functional.cosine_similarity(test_features, ref_features).item()
                 similarities.append(similarity)
             except Exception as e:
@@ -83,7 +78,7 @@ def recognize_weapon(test_image_path, reference_folder, db_path):
         output += f"📏 Схожість: {highest_similarity:.4f}\n"
 
         if match_info["category"] in ["гранати", "міни"] and highest_similarity > 0.8:
-            output += "⚠️ Увага! Об'єкт може бути вибухонебезпечним. Не торкайтесь!"
+            output += "\n⚠️ Увага! Об'єкт може бути вибухонебезпечним. Не торкайтесь!"
     elif best_match:
         output += f"✅ Найбільш схожа модель: {best_match}\n📏 Схожість: {highest_similarity:.4f}"
     else:

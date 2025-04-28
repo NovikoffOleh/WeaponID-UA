@@ -111,7 +111,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         coords = f"{lat}, {lon}"
         await query.message.reply_text(f"📌 Координати: {coords}\nhttps://maps.google.com/?q={coords}")
 
-import asyncio  # додати на початок файлу, якщо ще нема
+import asyncio  # Додай на початку файлу, якщо ще не додано
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
@@ -125,10 +125,8 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(text_wait)
 
     try:
-        # Викликаємо recognize_weapon в окремому потоці, щоб не блокувати Telegram
-        result = await asyncio.to_thread(
-            recognize_weapon, PHOTO_PATH, "weapon_images", "weapons_db.json"
-        )
+        # 🆕 запуск через окремий потік:
+        result = await asyncio.to_thread(recognize_weapon, PHOTO_PATH, "weapon_images", "weapons_db.json")
         user_last_result[user_id] = result.replace("\n", " | ")
         await update.message.reply_text(result)
     except Exception as e:
