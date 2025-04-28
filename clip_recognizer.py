@@ -6,6 +6,7 @@ import json
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
+
 # Завантаження моделі — буде виконано лише один раз
 _model = None
 _preprocess = None
