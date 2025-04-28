@@ -182,13 +182,13 @@ async def main():
     app.add_handler(MessageHandler(filters.TEXT, handle_other))
     app.add_handler(CallbackQueryHandler(button_handler))
 
-    # Старт бота вручну
     await app.initialize()
     await app.start()
-    logging.info("✅ Bot started successfully (Background Worker mode)")
+    await app.updater.start_polling()  # <<< Додано це обовʼязково для Render!
+    logging.info("✅ Bot started successfully and polling...")
 
     while True:
-        await asyncio.sleep(3600)  # Тримати живим нескінченно
+        await asyncio.sleep(3600)
 
 if __name__ == "__main__":
     import asyncio
