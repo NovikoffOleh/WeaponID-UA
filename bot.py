@@ -1,6 +1,5 @@
 import logging
 import os
-import asyncio
 from telegram import Update, ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, InputFile
 from telegram.ext import (
     ApplicationBuilder, CommandHandler, MessageHandler,
@@ -23,7 +22,6 @@ user_langs = {}
 user_locations = {}
 user_last_result = {}
 
-# Функції
 def get_lang(user_id):
     return user_langs.get(user_id, "ua")
 
@@ -170,8 +168,7 @@ async def request_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
     await update.message.reply_text("📍 Натисніть кнопку нижче, щоб поділитися місцезнаходженням:", reply_markup=reply_markup)
 
-# Головна функція
-async def main():
+def main():
     app = ApplicationBuilder().token(TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
@@ -185,7 +182,7 @@ async def main():
     app.add_handler(CallbackQueryHandler(button_handler))
 
     logging.info("✅ Bot started successfully and polling...")
-    await app.run_polling()
+    app.run_polling()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
