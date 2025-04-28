@@ -1,13 +1,23 @@
-# clip_recognizer.py
 import os
 from pathlib import Path
 import torch
-import clip
 from PIL import Image
 import json
 
+# Налаштування пристрою
 device = "cuda" if torch.cuda.is_available() else "cpu"
-model, preprocess = clip.load("ViT-B/32", device=device)
+
+# Ліниве завантаження моделі
+model = None
+preprocess = None
+
+def get_model():
+    """Ліниве завантаження CLIP-моделі при першому використанні"""
+    global model, preprocess
+    if model is None or preprocess is None:
+        import clip
+        model, preprocess = clip.load("ViT-B/32", device=device)
+    return model, preprocess
 
 def load_local_image(path):
     """Завантаження локального зображення"""
@@ -30,6 +40,9 @@ def collect_image_folders(root_path):
 
 def recognize_weapon(test_image_path, reference_folder="weapon_images", db_path="weapons_db.json"):
     """Основна функція розпізнавання зброї"""
+
+    # Завантаження моделі при першому запиті
+    model, preprocess = get_model()
 
     # Перевірка наявності файлів
     if not os.path.exists(test_image_path):
