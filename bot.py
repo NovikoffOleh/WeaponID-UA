@@ -14,6 +14,7 @@ TOKEN = os.environ.get("TOKEN")
 PHOTO_PATH = "input_photos/test.jpg"
 LOG_FILE = "user_logs.txt"
 
+
 # Налаштування логування
 logging.basicConfig(level=logging.INFO)
 
@@ -110,6 +111,8 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         coords = f"{lat}, {lon}"
         await query.message.reply_text(f"📌 Координати: {coords}\nhttps://maps.google.com/?q={coords}")
 
+import asyncio  # додати на початок файлу, якщо ще нема
+
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     lang = get_lang(user_id)
@@ -122,7 +125,10 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(text_wait)
 
     try:
-        result = recognize_weapon(PHOTO_PATH, "weapon_images", "weapons_db.json")
+        # Викликаємо recognize_weapon в окремому потоці, щоб не блокувати Telegram
+        result = await asyncio.to_thread(
+            recognize_weapon, PHOTO_PATH, "weapon_images", "weapons_db.json"
+        )
         user_last_result[user_id] = result.replace("\n", " | ")
         await update.message.reply_text(result)
     except Exception as e:
