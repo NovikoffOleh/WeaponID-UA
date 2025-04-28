@@ -1,6 +1,6 @@
 import logging
 import os
-import time
+import asyncio
 from telegram import Update, ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, InputFile
 from telegram.ext import (
     ApplicationBuilder, CommandHandler, MessageHandler,
@@ -8,12 +8,12 @@ from telegram.ext import (
 )
 from clip_recognizer import recognize_weapon
 from datetime import datetime
+from asyncio import to_thread
 
 # Константи
 TOKEN = os.environ.get("TOKEN")
 PHOTO_PATH = "input_photos/test.jpg"
 LOG_FILE = "user_logs.txt"
-
 
 # Налаштування логування
 logging.basicConfig(level=logging.INFO)
@@ -111,8 +111,6 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         coords = f"{lat}, {lon}"
         await query.message.reply_text(f"📌 Координати: {coords}\nhttps://maps.google.com/?q={coords}")
 
-import asyncio  # Додай на початку файлу, якщо ще не додано
-
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     lang = get_lang(user_id)
@@ -125,8 +123,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(text_wait)
 
     try:
-        # 🆕 запуск через окремий потік:
-        result = await asyncio.to_thread(recognize_weapon, PHOTO_PATH, "weapon_images", "weapons_db.json")
+        result = await to_thread(recognize_weapon, PHOTO_PATH, "weapon_images", "weapons_db.json")
         user_last_result[user_id] = result.replace("\n", " | ")
         await update.message.reply_text(result)
     except Exception as e:
@@ -173,6 +170,7 @@ async def request_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
     await update.message.reply_text("📍 Натисніть кнопку нижче, щоб поділитися місцезнаходженням:", reply_markup=reply_markup)
 
+# Головна функція
 async def main():
     app = ApplicationBuilder().token(TOKEN).build()
 
@@ -188,12 +186,9 @@ async def main():
 
     await app.initialize()
     await app.start()
-    await app.updater.start_polling()  # <<< Додано це обовʼязково для Render!
     logging.info("✅ Bot started successfully and polling...")
 
-    while True:
-        await asyncio.sleep(3600)
+    await app.run_polling()
 
 if __name__ == "__main__":
-    import asyncio
     asyncio.run(main())
