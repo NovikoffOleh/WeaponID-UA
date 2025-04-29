@@ -121,7 +121,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text_wait = "🔍 Обробка зображення може зайняти 110с" if lang == "ua" else "🔍 Processing image..."
     await update.message.reply_text(text_wait)
 
-        try:
+    try:
         result = await to_thread(recognize_weapon, PHOTO_PATH, "weapon_images", "weapons_db.json")
         user_last_result[user_id] = result.replace("\n", " | ")
 
@@ -145,7 +145,6 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await update.message.reply_text(result)
 
-        
     except Exception as e:
         await update.message.reply_text(f"⚠️ Помилка розпізнавання: {e}" if lang == "ua" else f"⚠️ Recognition error: {e}")
 
@@ -188,7 +187,7 @@ async def send_user_log(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def request_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [[KeyboardButton(text="📍 Подивитися локацію", request_location=True)]]
     reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
-    await update.message.reply_text("📍 Натисніть кнопку нижче, щоб подтвитися локацію:", reply_markup=reply_markup)
+    await update.message.reply_text("📍 Натисніть кнопку нижче, щоб підтвердити локацію:", reply_markup=reply_markup)
 
 # ⚡ Головна функція
 def main():
