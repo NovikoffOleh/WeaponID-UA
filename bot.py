@@ -94,7 +94,7 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         coords = f"{lat}, {lon}"
         text = (
-            f"📍 Ваші координати:\n{coords}\n\n⚠️ Не пересилайте автоматично в зону бойових дій!"
+            f"📍 Ваші координати:\n{coords}\n\n⚠️ Не користуватися у зоні бойових дій!"
         )
         copy_markup = InlineKeyboardMarkup([
             [InlineKeyboardButton("📎 Скопіювати координати", callback_data=f"copy_{lat}_{lon}")]
@@ -118,13 +118,33 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     os.makedirs(os.path.dirname(PHOTO_PATH), exist_ok=True)
     await photo_file.download_to_drive(PHOTO_PATH)
 
-    text_wait = "🔍 Обробляю зображення..." if lang == "ua" else "🔍 Processing image..."
+    text_wait = "🔍 Обробка зображення може зайняти 110с" if lang == "ua" else "🔍 Processing image..."
     await update.message.reply_text(text_wait)
 
     try:
         result = await to_thread(recognize_weapon, PHOTO_PATH, "weapon_images", "weapons_db.json")
         user_last_result[user_id] = result.replace("\n", " | ")
+        
+                if lang == "ua":
+            result += (
+                "\n\n📞 Якщо ви впевнені, що це небезпечний об’єкт:\n"
+                "Зателефонуйте до:\n"
+                "• ДСНС: +0000000000\n"
+                "• СБУ: +0000000000\n"
+                "\n📍 Бажаєте побачити координати? Введіть команду /location або скористайтесь кнопкою внизу."
+                "\n📍 Бажаєте побачити меню? Введіть команду /help"
+            )
+        else:
+            result += (
+                "\n\n📞 If you believe this object is dangerous:\n"
+                "Please call:\n"
+                "• Emergency Service: +0000000000\n"
+                "• Security Service: +0000000000\n"
+                "\n📍 Would you like to share your location? Type /location or use the button below."
+            )
+        
         await update.message.reply_text(result)
+        
     except Exception as e:
         await update.message.reply_text(f"⚠️ Помилка розпізнавання: {e}" if lang == "ua" else f"⚠️ Recognition error: {e}")
 
@@ -165,9 +185,9 @@ async def send_user_log(update: Update, context: ContextTypes.DEFAULT_TYPE):
     os.remove(user_log_path)
 
 async def request_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [[KeyboardButton(text="📍 Надіслати місцезнаходження", request_location=True)]]
+    keyboard = [[KeyboardButton(text="📍 Подивитися локацію", request_location=True)]]
     reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
-    await update.message.reply_text("📍 Натисніть кнопку нижче, щоб поділитися місцезнаходженням:", reply_markup=reply_markup)
+    await update.message.reply_text("📍 Натисніть кнопку нижче, щоб подтвитися локацію:", reply_markup=reply_markup)
 
 # ⚡ Головна функція
 def main():
