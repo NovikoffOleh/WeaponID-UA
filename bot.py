@@ -189,22 +189,18 @@ async def request_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
     await update.message.reply_text("📍 Натисніть кнопку нижче, щоб підтвердити локацію:", reply_markup=reply_markup)
 
-# ⚡ Головна функція
-def main():
+# Головна функція запуску
+async def main():
     app = ApplicationBuilder().token(TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("lang", lang))
-    app.add_handler(CommandHandler("location", request_location))
-    app.add_handler(CommandHandler("mylog", send_user_log))
+    app.add_handler(CommandHandler("location", handle_photo))  # для прикладу
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
-    app.add_handler(MessageHandler(filters.LOCATION, handle_location))
-    app.add_handler(MessageHandler(filters.TEXT, handle_other))
-    app.add_handler(CallbackQueryHandler(button_handler))
 
     logging.info("✅ Bot started successfully and polling...")
-    app.run_polling()
+    await app.run_polling()
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
