@@ -121,11 +121,11 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text_wait = "🔍 Обробка зображення може зайняти 110с" if lang == "ua" else "🔍 Processing image..."
     await update.message.reply_text(text_wait)
 
-    try:
+        try:
         result = await to_thread(recognize_weapon, PHOTO_PATH, "weapon_images", "weapons_db.json")
         user_last_result[user_id] = result.replace("\n", " | ")
-        
-                if lang == "ua":
+
+        if lang == "ua":
             result += (
                 "\n\n📞 Якщо ви впевнені, що це небезпечний об’єкт:\n"
                 "Зателефонуйте до:\n"
@@ -142,8 +142,9 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "• Security Service: +0000000000\n"
                 "\n📍 Would you like to share your location? Type /location or use the button below."
             )
-        
+
         await update.message.reply_text(result)
+
         
     except Exception as e:
         await update.message.reply_text(f"⚠️ Помилка розпізнавання: {e}" if lang == "ua" else f"⚠️ Recognition error: {e}")
