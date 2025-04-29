@@ -1,5 +1,4 @@
 import logging
-import asyncio
 import os
 from telegram import Update, ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, InputFile
 from telegram.ext import (
@@ -42,7 +41,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ], resize_keyboard=True)
 
     text_ua = (
-        "👋 Надішліть фото підозрілого об’єкта (зброя або боєприпас), і я спробую його розпізнати.\n\n"
+        "👋 Надішліть фото підозрілого об’єкта (зброя або боєприпас).\n\n"
         "📷 Ви можете зробити фото або завантажити з галереї."
     )
     text_en = (
@@ -56,7 +55,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     help_text = (
         "📖 *Інструкція з використання:*\n"
         "\n📷 Надішліть фото — розпізнаю зброю або боєприпас."
-        "\n📍 /location — Надіслати місцезнаходження (координати)."
+        "\n📍 /location — Надіслати локацію (координати)."
         "\n📄 /mylog — Отримати журнал знайдених об'єктів."
         "\n🌐 /lang — Змінити мову."
         "\nℹ️ /help — Показати цю інструкцію."
@@ -119,7 +118,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     os.makedirs(os.path.dirname(PHOTO_PATH), exist_ok=True)
     await photo_file.download_to_drive(PHOTO_PATH)
 
-    text_wait = "🔍 Обробка зображення може зайняти 110с" if lang == "ua" else "🔍 Processing image..."
+    text_wait = "🔍 Обробка зображення може зайняти 70-120с" if lang == "ua" else "🔍 Processing image..."
     await update.message.reply_text(text_wait)
 
     try:
@@ -190,18 +189,22 @@ async def request_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
     await update.message.reply_text("📍 Натисніть кнопку нижче, щоб підтвердити локацію:", reply_markup=reply_markup)
 
-# Головна функція запуску
-async def main():
+# ⚡ Головна функція
+def main():
     app = ApplicationBuilder().token(TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("lang", lang))
-    app.add_handler(CommandHandler("location", handle_photo))  # для прикладу
+    app.add_handler(CommandHandler("location", request_location))
+    app.add_handler(CommandHandler("mylog", send_user_log))
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
+    app.add_handler(MessageHandler(filters.LOCATION, handle_location))
+    app.add_handler(MessageHandler(filters.TEXT, handle_other))
+    app.add_handler(CallbackQueryHandler(button_handler))
 
     logging.info("✅ Bot started successfully and polling...")
-    await app.run_polling()
+    app.run_polling()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
